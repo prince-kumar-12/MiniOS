@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Mobile OS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+     
+    body {
+      margin: 0;
+      padding: 0;
+      background: #1a1a1a;
+      font-family: "Ubuntu", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .mobile-screen {
+      width: 340px;
+      height: 640px;
+      background: url('https://images.unsplash.com/photo-1727773458292-9da4284a4d3e?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat;
+      border: 10px solid #000;
+      border-radius: 30px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      color: white;
+      transition: filter 0.3s ease;
+    }
+
+    .status-bar {
+      color: white;
+      padding: 10px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    .battery {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .battery-icon {
+      width: 40px;
+      height: 20px;
+      background-color: #444;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .battery-level {
+      height: 100%;
+      background-color: #00bcd4;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .battery-terminal {
+      width: 10px;
+      height: 8px;
+      background-color: #444;
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      border-radius: 2px;
+    }
+
+    .battery-percentage {
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .time-widget {
+      display: flex;
+      font-size: 50px;
+      margin: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .app-grid {
+      position: absolute;
+      bottom: 20px;
+      width: 90%;
+      display: flex;
+      flex-wrap: wrap-reverse;
+      padding: 0 20px;
+      gap: 30px;
+    }
+
+    .app {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s;
+    }
+
+    .app img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .app:hover {
+      transform: scale(1.1);
+    }
+
+    .notification-panel {
+      position: absolute;
+      top: -600px;
+      left: 0;
+      width: 91%;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      transition: top 0.6s ease-in-out, height 0.6s ease-in-out;
+      z-index: 2;
+      padding: 15px;
+      overflow-y: hidden;
+      height: 0;
+    }
+
+    .notification-panel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .notification-panel.show-1 {
+      top: 30px;
+      height: 300px;
+      font-weight: lighter;
+    }
+
+    .notification-panel.show-2 {
+      top: 30px;
+      height: 500px;
+    }
+
+    .notification-overlay {
+      position: absolute;
+      top: 530px;
+      left: 0;
+      width: 100%;
+      height: 310px;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+      display: none;
+      cursor: pointer;
+    }
+
+    .notification-panel.show-2+.notification-overlay {
+      display: block;
+    }
+
+    .quick-settings {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      pointer-events: none;
+      background: #2a2a2a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .notification-panel.show-2 .quick-settings {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .toggle-btn {
+      flex: 1 1 40%;
+      background: #444;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle-btn.active {
+      background: #00bcd4;
+    }
+
+    .brightness-control {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+      background: #3a3a3a;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .brightness-control.hidden {
+      display: none;
+    }
+
+    .brightness-control label {
+      font-size: 12px;
+      color: #ccc;
+    }
+
+    .notification {
+      background: #2a2a2a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .notification h4 {
+      margin: 0 0 5px;
+      font-size: 16px;
+    }
+
+    .notification p {
+      margin: 0;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    /* Camera Overlay */
+    #camera-overlay {
+      width: 340px;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      flex-direction: column;
+    }
+
+    #camera-video {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    #camera-overlay button {
+      align-self: center;
+      margin: 5px;
+      padding: 10px 15px;
+      background: #ccc;
+      border: none;
+      height: 50px;
+      width: 50px;
+      border-radius: 25px;
+      font-size: 16px;
+      color: white;
+      cursor: pointer;
+    }
+
+    #gallery-images::-webkit-scrollbar {
+      display: none;
+    }
+
+    #contacts-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    #message-list::-webkit-scrollbar {
+      display: none;
+    }
+    #calculator::-webkit-scrollbar{
+      display: none;
+    }
+    .wiki{
+      overflow-y: scroll;
+    }
+    #messages::-webkit-scrollbar{
+        display: none;
+    }
+  </style>
+
+  <script>
+    let panelState = 0;
+    let startY = null;
+    let stream = null;
+    let images = [];
+
+    function updateTime() {
+      const timeElements = document.querySelectorAll('#time');
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      timeElements.forEach(el => el.textContent = timeStr);
+    }
+
+    function updateBattery() {
+      if (navigator.getBattery) {
+        navigator.getBattery().then(battery => {
+          const level = Math.round(battery.level * 100);
+          document.getElementById('battery-level').textContent = level + '%';
+          document.querySelector('.battery-level').style.width = level + '%';
+        });
+      }
+    }
+
+    function togglePanel() {
+      const panel = document.getElementById('notification-panel');
+      panel.classList.remove('show-1', 'show-2');
+      panelState = (panelState + 1) % 3;
+      if (panelState === 1) panel.classList.add('show-1');
+      else if (panelState === 2) panel.classList.add('show-2');
+    }
+
+    function closePanel() {
+      const panel = document.getElementById('notification-panel');
+      panel.classList.remove('show-1', 'show-2');
+      panelState = 0;
+    }
+
+    function toggleSetting(btn) {
+      btn.classList.toggle('active');
+      if (btn.textContent.trim().toLowerCase() === 'brightness') {
+        document.querySelector('.brightness-control').classList.toggle('hidden');
+      }
+    }
+
+    function adjustBrightness(value) {
+      document.querySelector('.mobile-screen').style.filter = `brightness(${value}%)`;
+    }
+
+    function handleTouchStart(e) {
+      startY = e.touches ? e.touches[0].clientY : e.clientY;
+    }
+
+    function handleTouchMove(e) {
+      if (startY === null) return;
+      const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+      const diffY = startY - currentY;
+      const panel = document.getElementById('notification-panel');
+      if (diffY > 50 && panelState === 2) {
+        panel.classList.remove('show-2');
+        panel.classList.add('show-1');
+        panelState = 1;
+        startY = null;
+      } else if (diffY > 50 && panelState === 1) {
+        closePanel();
+        startY = null;
+      }
+    }
+
+    function handleTouchEnd() {
+      startY = null;
+    }
+
+    
+    function openCameraApp() {
+      const overlay = document.getElementById("camera-overlay");
+      const video = document.getElementById("camera-video");
+      
+      navigator.mediaDevices.getUserMedia({ video: true })
+      
+        .then(s => {
+            video:true
+          stream = s;
+          video.srcObject = stream;
+          overlay.style.display = "flex";
+          document.getElementsByClassName("app-grid")[0].style.display = "none";
+          document.getElementsByClassName("time-widget")[0].style.display = "none";
+        })
+        .catch(err => {
+          alert("Camera access denied or not available.");
+          console.error(err);
+        });
+    }
+
+
+    function captureImage() {
+      const canvas = document.getElementById("camera-canvas");
+      const video = document.getElementById("camera-video");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL("image/png");
+    //   alert("Image captured!");
+      console.log("Captured Image:", imageData);
+      images.push(imageData);
+      console.log(images)
+    }
+
+    function closeCamera() {
+        video :
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      document.getElementById("camera-overlay").style.display = "none";
+      document.getElementsByClassName("app-grid")[0].style.display = "flex";
+      document.getElementsByClassName("time-widget")[0].style.display = "flex";
+    }
+
+    setInterval(updateTime, 1000);
+    setInterval(updateBattery, 60000);
+
+    window.onload = () => {
+      updateTime();
+      updateBattery();
+
+      const panel = document.getElementById('notification-panel');
+      panel.addEventListener('touchstart', handleTouchStart);
+      panel.addEventListener('touchmove', handleTouchMove);
+      panel.addEventListener('touchend', handleTouchEnd);
+      panel.addEventListener('mousedown', handleTouchStart);
+      panel.addEventListener('mousemove', handleTouchMove);
+      panel.addEventListener('mouseup', handleTouchEnd);
+    };
+    
+  </script>
+</head>
+
+<body>
+  <div class="mobile-screen">
+    <div class="status-bar" onclick="togglePanel()">
+      <div class="battery">
+        <div class="battery-icon">
+          <div class="battery-level"></div>
+          <div class="battery-terminal"></div>
+        </div>
+        <span id="battery-level">--%</span>
+      </div>
+      <span id="time">--:--</span>
+    </div>
+
+    <div class="notification-panel" id="notification-panel" style="height: auto; max-height: 60%; overflow: scroll;">
+      <div class="quick-settings">
+        <h4>
+          <center>Quick Settings</center>
+        </h4>
+        <div class="toggles">
+          <div class="toggle-btn" onclick="toggleSetting(this)">Wi-Fi</div>
+          <div class="toggle-btn" onclick="toggleSetting(this)">Bluetooth</div>
+          <div class="toggle-btn" onclick="toggleSetting(this)">Flashlight</div>
+          <div class="toggle-btn" onclick="toggleSetting(this)">Flight Mode</div>
+          <div class="toggle-btn" onclick="toggleSetting(this)">Mute</div>
+          <div class="toggle-btn" onclick="toggleSetting(this)">Silent</div>
+          <div class="toggle-btn" onclick="toggleSetting(this)">Brightness</div>
+        </div>
+        <div class="brightness-control hidden">
+          <input type="range" id="brightness-slider" min="10" max="100" value="100"
+            oninput="adjustBrightness(this.value)">
+        </div>
+      </div>
+
+      <div class="notification">
+        <h4>Reminder</h4>
+        <p>Meeting at 3:30 PM.</p>
+      </div>
+    </div>
+
+    <div class="notification-overlay" onclick="closePanel()"></div>
+
+    <div class="time-widget" id="time">--:--</div>
+
+    <div class="app-grid">
+      <div class="app" onclick="openMap()">
+        <img src="https://img.icons8.com/?size=100&id=59829&format=png&color=000000" alt="Contacts">
+      </div>
+      <div class="app" onclick="openCalculatorApp()">
+        <img src="https://img.icons8.com/?size=100&id=101147&format=png&color=000000" alt="Calculator">
+      </div>
+      <div class="app" onclick="openwiki()">
+        <img src="https://img.icons8.com/?size=100&id=gDi80jDvhca2&format=png&color=000000" alt="Calculator">
+      </div>
+      <div class="app" onclick="OpenGallery()">
+        <img src="https://img.icons8.com/ios-filled/50/image-gallery.png" alt="Gallery">
+      </div>
+      <div class="app" onclick="openCameraApp()">
+        <img src="https://img.icons8.com/ios-filled/50/000000/camera.png" alt="Camera">
+      </div>
+      <div class="app" onclick="openChat()">
+        <img src="https://img.icons8.com/?size=100&id=AQdX4guXSINv&format=png&color=000000" alt="Camera">
+      </div>
+    </div>
+
+    <!-- Camera Overlay -->
+    <div id="camera-overlay" style="display: none; flex-direction: column; background: rgba(0, 0, 0, 0.95);">
+      <div
+        style="display: flex; height: 10px; justify-content: start; padding-left: 30px;padding-top: 30px; width: 360px;"
+        onclick="closeCamera()"> X </div>
+      <video id="camera-video" autoplay playsinline style="transform: rotateY(180deg);"></video>
+      <div
+        style="display: flex; justify-content: space-evenly; align-items: center; gap: 20px; padding-bottom: 10px; align-self: center; width: 100%;">
+        <button style="background-color: transparent;"></button>
+        <button onclick="captureImage()"><img src="https://img.icons8.com/ios-filled/50/000000/camera.png" alt=""
+            style="height: 20px;"></button>
+        <button onclick="function swit(){closeCamera();OpenGallery();} swit()"><img
+            src="https://img.icons8.com/ios-filled/50/image-gallery.png" alt="" style="height: 20px;"></button>
+      </div>
+      <canvas id="camera-canvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="gallery" style="display: none; flex-direction: column; height: 95% ;">
+      <div
+        style="display: flex; height: auto; justify-content: start; padding-left: 30px;padding-top: 30px; width: 360px;"
+        onclick="closeGallery()"> X </div>
+      <div id="gallery-images"
+        style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; overflow: scroll; padding: 20px;">
+      </div>
+    </div>
+    <div class="contact-app" style="display: none; flex-direction: column; height: 90%;">
+      <div
+        style="display: flex; height: auto; justify-content: start; padding-left: 30px;padding-top: 30px; width: 360px;"
+        onclick="closeContactsApp()"> X </div>
+      <div id="contacts-list" style="display: flex; overflow: scroll; flex-direction: column ;padding: 5px;"></div>
+
+    </div>
+    <div class="calculator-app" style="display: none; flex-direction: column; height: 90%;">
+      <div
+        style="display: flex; height: auto; justify-content: start; padding-left: 30px;padding-top: 30px; width: 360px;"
+        onclick="closeCalculatorApp()"> X </div>
+      <div id="calculator" style="display: flex; overflow: scroll; flex-direction: column ;padding: 5px;"></div>
+    </div>
+    <div class="chat" style="display: none; flex-direction: column; height: 90%;">
+      <div
+        style="display: flex; height: auto; justify-content: start; padding-left: 30px;padding-top: 30px; width: 360px;"
+        onclick="closeChat()"> X </div>
+      <div class="chat-container" style="height: 80%;">
+        <div class="messages" id="messages" style="height: 100%;overflow-y: scroll; display: flex; padding: 3%; flex-direction: column; gap: 10px;"></div>
+        <div class="input-container" style="height: 10%;display: flex;bottom: 0;">
+            <input type="text" id="user-input" placeholder="Type a message..." style="height: 70%; width: 80%; border: none; border-radius: 10px;font-size: medium;"/>
+            <button onclick="sendMessage()" style="height: 70%; width: 20%; border: none; border-radius: 10px; background-color: #1e1c1c;color: aliceblue;font-size: medium; border:2px solid #00bcd4;">send</button>
+        </div>
+    </div>
+    </div>
+    <div class="google-map" style="display: none; flex-direction: column; height: 90%;">
+      <div
+        style="display: flex; height: auto; justify-content: start; padding-left: 30px;padding-top: 30px; width: 360px;"
+        onclick="closemap()"> X </div>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7015.899505897943!2d77.0329886!3d28.4594965!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d191d04e947b9%3A0x5c7f9b8c51b593b7!2sGurugram%2C%20Haryana%20122002%2C%20India!5e0!3m2!1sen!2sin!4v1714043900000!5m2!1sen!2sin" height="85%"></iframe>
+    </div>
+    <div class="wiki" style="display: none; flex-direction: column; height: 90%;overflow: hidden;">
+      <div
+        style="display: flex;justify-content: start; padding-left: 30px;padding-top: 30px; width: 100%; overflow-y: none;"
+        onclick="closewiki()"> X </div>
+        <center><h2>Wikipedia🔎</h2></center>
+<center><input type="text" id="searchInput"  style="height: 30px;width: 100%;color: #ccc; font-size: large; background-color: #3a3a3a;" placeholder="Search Wikipedia..." /></center>
+<center><button onclick="searchWikipedia()" style="height: 30px; width: 310px; margin-top: 20px;background-color:rgb(188, 184, 184);border-radius: 10px;font-size: larger; ">Search</button></center>
+
+<div id="searchResults"></div>
+    </div>
+
+  </div>
+
+
+  <script>
+    const apiKey = "AIzaSyAheHPW8ayFl_Qqdk7XuCtu21aoSsp3Sl0"; // Replace with your Gemini API key
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`; 
+
+        async function sendMessage() {
+    const userInput = document.getElementById('user-input').value;
+    if (!userInput) return; 
+
+    appendMessage('You: ' + userInput);
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        'text': userInput  // Use the user input as the "text" field in the "parts" array
+                    }]
+                }]
+            })
+        });
+
+        const data = await response.json();
+
+        console.log("API Response:", data); // Log the response to inspect the structure
+        let parts = data.candidates[0].content.parts
+        if (Array.isArray(parts) && parts.length > 0) {
+            const botReply = parts[0].text.trim(); // Extract the bot's response
+            appendMessage('Bot: ' + botReply);
+        } else {
+            appendMessage('Bot: Sorry, no reply from the bot.');
+        }
+        
+    } catch (error) {
+        console.error("Error:", error);
+        appendMessage('Bot: Sorry, something went wrong.');
+    }
+    document.getElementById('user-input').value = '';
+}
+
+function appendMessage(message) {
+    const messagesDiv = document.getElementById('messages');
+    const newMessage = document.createElement('div');
+    newMessage.textContent = message;
+    messagesDiv.appendChild(newMessage);
+
+    // Scroll to the bottom of the messages
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+    async function searchWikipedia() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query) return;
+
+    const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = '';
+
+    data.query.search.forEach(item => {
+      const title = item.title;
+      const snippet = item.snippet;
+
+      const resultHTML = `
+        <div class="result">
+          <h3><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(title)}" >${title}</a></h3>
+          <p>${snippet}...</p>
+        </div>
+      `;
+
+      resultsDiv.innerHTML += resultHTML;
+    });
+  }
+    function openChat(){
+      document.querySelector(".chat").style.display = "flex";
+      document.querySelector(".time-widget").style.display = "none";
+      document.querySelector(".app-grid").style.display = "none";
+      document.querySelector(".mobile-screen").style.background = "rgba(0, 0, 0, 0.85)";
+    }
+    function openMap(){
+      document.querySelector(".google-map").style.display = "flex";
+      document.querySelector(".time-widget").style.display = "none";
+      document.querySelector(".app-grid").style.display = "none";
+      document.querySelector(".mobile-screen").style.background = "rgba(0, 0, 0, 0.85)";
+    }
+    function openwiki(){
+      document.querySelector(".wiki").style.display = "flex";
+      document.querySelector(".time-widget").style.display = "none";
+      document.querySelector(".app-grid").style.display = "none";
+      document.querySelector(".mobile-screen").style.background = "rgba(0, 0, 0, 0.85)";
+    }
+   function openCalculatorApp() {
+      document.querySelector(".calculator-app").style.display = "flex";
+      document.querySelector(".time-widget").style.display = "none";
+      document.querySelector(".app-grid").style.display = "none";
+      document.querySelector(".mobile-screen").style.background = "rgba(0, 0, 0, 0.85)";
+
+  const container = document.querySelector("#calculator");
+  container.innerHTML = '';
+  container.style.display = "flex";
+  container.style.justifyContent = "flex-end";
+  container.style.alignItems = "center";
+  container.style.position = "absolute";
+  container.style.bottom = "20px";
+  container.style.left = "0";
+  container.style.right = "0";
+
+
+  const wrapper = document.createElement("div");
+  wrapper.style.background = "rgba(255,255,255,0.05)";
+  wrapper.style.backdropFilter = "blur(10px)";
+  wrapper.style.borderRadius = "30px";
+  wrapper.style.padding = "20px";
+  wrapper.style.boxShadow = "0 10px 30px rgba(0,0,0,0.4)";
+  wrapper.style.width = "100%";
+  wrapper.style.maxWidth = "350px";
+  wrapper.style.display = "flex";
+  wrapper.style.flexDirection = "column";
+  wrapper.style.alignItems = "center";
+  container.appendChild(wrapper);
+
+  const display = document.createElement("input");
+  display.type = "text";
+  display.disabled = true;
+  display.value = '';
+  display.style.width = "100%";
+  display.style.height = "60px";
+  display.style.fontSize = "36px";
+  display.style.background = "transparent";
+  display.style.border = "none";
+  display.style.color = "white";
+  display.style.textAlign = "right";
+  display.style.marginBottom = "20px";
+  wrapper.appendChild(display);
+
+  const buttonsContainer = document.createElement("div");
+  buttonsContainer.style.display = "grid";
+  buttonsContainer.style.gridTemplateColumns = "repeat(4, 1fr)";
+  buttonsContainer.style.gap = "15px";
+  wrapper.appendChild(buttonsContainer);
+
+  const buttons = [
+    'AC', ,'←','÷', '%', '7',
+    '8', '9', '×', '4',
+    '5', '6', '-', '1',
+    '2', '3', '+', '0',
+    ',', '.', '='
+  ];
+
+  buttons.forEach(val => {
+    const btn = document.createElement("button");
+    btn.textContent = val;
+    btn.style.height = "60px";
+    btn.style.width = "60px";
+    btn.style.fontSize = "20px";
+    btn.style.border = "none";
+    btn.style.borderRadius = "50%";
+    btn.style.background = "rgba(255,255,255,0.08)";
+    btn.style.color = "#fff";
+    btn.style.backdropFilter = "blur(6px)";
+    btn.style.cursor = "pointer";
+
+    
+     
+    btn.onclick = () => {
+      if (val === 'AC') {
+        display.value = '';
+      }else if(val==='←'){
+        display.value=display.value.slice(0,-1);
+
+      } else if (val === '=') {
+        try {
+          display.value = eval(
+            display.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
+          );
+        } catch {
+          display.value = 'Error';
+        }
+      } else {
+        display.value += val;
+      }
+    };
+
+    buttonsContainer.appendChild(btn);
+  });
+}
+
+    closeChat = () => {
+      document.querySelector(".chat").style.display = "none";
+      document.querySelector(".time-widget").style.display = "flex";
+      document.querySelector(".app-grid").style.display = "flex";
+      document.querySelector(".mobile-screen").style.background = "url('https://images.unsplash.com/photo-1727773458292-9da4284a4d3e?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat";
+    };
+    closewiki = () => {
+      document.querySelector(".wiki").style.display = "none";
+      document.querySelector(".time-widget").style.display = "flex";
+      document.querySelector(".app-grid").style.display = "flex";
+      document.querySelector(".mobile-screen").style.background = "url('https://images.unsplash.com/photo-1727773458292-9da4284a4d3e?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat";
+    };
+    closemap = () => {
+      document.querySelector(".google-map").style.display = "none";
+      document.querySelector(".time-widget").style.display = "flex";
+      document.querySelector(".app-grid").style.display = "flex";
+      document.querySelector(".mobile-screen").style.background = "url('https://images.unsplash.com/photo-1727773458292-9da4284a4d3e?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat";
+    };
+    closeCalculatorApp = () => {
+      document.querySelector(".calculator-app").style.display = "none";
+      document.querySelector(".time-widget").style.display = "flex";
+      document.querySelector(".app-grid").style.display = "flex";
+      document.querySelector(".mobile-screen").style.background = "url('https://images.unsplash.com/photo-1727773458292-9da4284a4d3e?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat";
+    };
+    openContactsApp = () => {
+      document.querySelector(".contact-app").style.display = "flex";
+      document.querySelector(".time-widget").style.display = "none";
+      document.querySelector(".app-grid").style.display = "none";
+      document.querySelector(".mobile-screen").style.background = "rgba(0, 0, 0, 0.85)";
+
+      const contacts = [
+        { name: "Alice", number: "+8754219865" },
+        { name: "Bob", number: "+8758655865" },
+        { name: "Charlie", number: "+8455559865" },
+        { name: "David", number: "+8754219865" },
+        { name: "Eve", number: "+8754219865" },
+
+      ]
+      const contactsList = document.getElementById("contacts-list");
+      contactsList.innerHTML = ""; 
+      contacts.forEach(contact => {
+        const contactDiv = document.createElement("div");
+        contactDiv.style.display = "flex";
+        contactDiv.style.justifyContent = "space-between";
+        contactDiv.style.padding = "10px";
+        contactDiv.style.borderBottom = "1px solid #444";
+        contactDiv.style.cursor = "hand";
+        contactDiv.innerHTML = `<strong>${contact.name}</strong> <span>${contact.number}</span>`;
+        contactsList.appendChild(contactDiv);
+      });
+      const createContact = document.createElement("div");
+      createContact.style.position = "absolute";
+      createContact.style.boxShadow = "0 1px 3px rgba(0,0,0,0.4)";
+      createContact.style.height = "50px";
+      createContact.style.width = "50px";
+      createContact.style.borderRadius = "25px";
+      createContact.style.background = "#3a3a3a";
+      createContact.innerText = "+";
+      createContact.style.bottom = "10px";
+      createContact.style.right = "10px";
+      createContact.style.zIndex = "5";
+      createContact.style.display = "flex";
+      createContact.style.justifyContent = "center";
+      createContact.style.alignItems = "center";
+      createContact.style.fontSize = "30px";
+      createContact.style.flexDirection = "column";
+
+      let keyHandler = null;
+      createContact.onclick = () => {
+        const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "#", "0", "<=="];
+
+
+        createContact.style.height = "60%";
+        createContact.style.width = "100%";
+        createContact.style.bottom = "0";
+        createContact.style.right = "0";
+        createContact.style.backgroundColor = "rgba(0,0,0,0)";
+        createContact.style.borderRadius = "0";
+        createContact.innerHTML = "";
+        createContact.style.justifyContent = "flex-start";
+        createContact.style.alignItems = "center";
+        createContact.style.justifyContent = "flex-start";
+        createContact.style.alignItems = "center";
+        createContact.style.flexDirection = "column";
+        createContact.style.paddingTop = "20px";
+
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = "number";
+        input.placeholder = "Enter number...";
+        input.style.width = "100%";
+        input.style.padding = "10px";
+        input.style.fontSize = "18px";
+        input.style.border = "none";
+        input.style.textAlign = "center";
+        input.style.backgroundColor = "black";
+        input.style.color = "#FFFFFF";
+        input.style.margin = "10px";
+        input.style.borderBottom = "1px solid #444";
+        input.style.borderRadius = "10px";
+        createContact.appendChild(input);
+
+
+        document.addEventListener("keydown", keyHandler = function (e) {
+
+          if (!document.body.contains(input)) return;
+
+          const allowedKeys = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "#"];
+
+          if (allowedKeys.includes(e.key)) {
+            input.value += e.key;
+          } else if (e.key === "Backspace") {
+            input.value = input.value.slice(0, -1);
+          }
+        });
+
+
+        const keyboard = document.createElement("div");
+        keyboard.style.display = "grid";
+        keyboard.style.gridTemplateColumns = "repeat(3, 1fr)";
+        keyboard.style.gap = "10px";
+        keyboard.style.width = "80%";
+        keyboard.style.gridTemplateColumns = "repeat(3, 70px)";
+        keyboard.style.justifyContent = "center";
+        keyboard.style.padding = "20px";
+        keyboard.style.margin = "10px auto";
+        keyboard.style.padding = "10px";
+        keyboard.style.color = "#FFFFFF";
+        keyboard.style.backgroundColor = "#3a3a3a";
+        keyboard.style.borderRadius = "20px";
+        createContact.appendChild(keyboard);
+
+
+        keys.forEach(key => {
+          const but = document.createElement("button");
+          but.innerText = key;
+          but.style.height = "60px";
+          but.style.width = "60px";
+          but.style.backgroundColor = "#000000";
+          but.style.color = "#FFFFFF";
+          but.style.border = "none";
+          but.style.fontSize = "20px";
+          but.style.borderRadius = "15px";
+
+
+          but.onclick = () => {
+            if (key === "<==") {
+              input.value = input.value.slice(0, -1);
+            } else {
+              input.value += key;
+            }
+          };
+
+          keyboard.appendChild(but);
+        });
+
+        createContact.ondblclick = () => {
+          createContact.style.height = "50px";
+          createContact.style.width = "50px";
+          createContact.style.borderRadius = "25px";
+          createContact.style.background = "#3a3a3a";
+          createContact.innerText = "+";
+          createContact.style.bottom = "10px";
+          createContact.style.right = "10px";
+          createContact.style.justifyContent = "center";
+          createContact.style.alignItems = "center";
+          createContact.style.flexDirection = "column";
+
+          if (keyHandler) {
+            document.removeEventListener("keydown", keyHandler);
+          }
+
+          createContact.onclick = arguments.callee;
+        };
+      };
+
+      contactsList.appendChild(createContact);
+    };
+    closeContactsApp = () => {
+      document.querySelector(".contact-app").style.display = "none";
+      document.querySelector(".time-widget").style.display = "flex";
+      document.querySelector(".app-grid").style.display = "flex";
+      document.querySelector(".mobile-screen").style.background = "url('https://images.unsplash.com/photo-1727773458292-9da4284a4d3e?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat";
+    };
+    OpenGallery = () => {
+      document.querySelector(".gallery").style.display = "flex";
+      document.querySelector(".time-widget").style.display = "none";
+      document.querySelector(".app-grid").style.display = "none";
+      document.querySelector(".mobile-screen").style.background = "#2a2a2a";
+      const gallery = document.getElementById("gallery-images");
+      gallery.innerHTML = ""; // Clear previous images
+      gallery.style.display = "flex";
+      const create = document.createElement("div");
+      create.style.width = "130px";
+      create.style.height = "95px";
+      create.style.borderRadius = "5px";
+      create.style.boxShadow = "0 1px 3px rgba(0,0,0,0.4)";
+      create.style.background = "#3a3a3a";
+      create.style.display = "flex";
+      create.style.justifyContent = "center";
+      create.style.alignItems = "center";
+      create.innerHTML = "<h3 style='color: black;'>Create</h3>";
+      create.onclick = () => {
+        closeGallery();
+        openCameraApp();
+      };
+      gallery.appendChild(create);
+      images.forEach((image, index) => {
+        const img = document.createElement("img");
+        gallery.style.justifyContent = "space-between";
+        gallery.style.alignItems = "start";
+        gallery.style.height = "auto";
+        img.src = image;
+        img.style.width = "130px";
+        img.style.borderRadius = "5px";
+        img.style.boxShadow = "0 1px 3px rgba(0,0,0,0.4)";
+        img.style.transform = "rotateY(180deg)";
+        img.onclick = () => {
+          gallery.style.height = "100%";
+          gallery.style.justifyContent = "center";
+          gallery.style.alignItems = "center";
+          const fullImg = document.createElement("img");
+          fullImg.src = image;
+          fullImg.style.width = "100%";
+          fullImg.style.borderRadius = "8px";
+          fullImg.style.boxShadow = "0 1px 3px rgba(0,0,0,0.4)";
+          fullImg.style.transform = "rotateY(180deg)";
+          fullImg.onclick = () => {
+            closeGallery();
+            OpenGallery();
+          }
+          gallery.innerHTML = "";
+          gallery.appendChild(fullImg);
+        };
+        gallery.appendChild(img);
+      });
+    };
+    closeGallery = () => {
+      document.querySelector(".gallery").style.display = "none";
+      document.querySelector(".time-widget").style.display = "flex";
+      document.querySelector(".app-grid").style.display = "flex";
+      document.querySelector(".mobile-screen").style.background = "url('https://images.unsplash.com/photo-1727773458292-9da4284a4d3e?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat";
+    };
+  </script>
+
+</body>
+
+</html>
